@@ -1,0 +1,218 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+class matrixmultiply{
+public:
+	vector<vector<int>> AA;
+	vector<vector<int>> BB;
+	vector<vector<int>> CC;
+
+	matrixmultiply(vector< vector<int> > &a, vector< vector<int> > &b, vector< vector<int> > &c){
+		AA = a;
+		BB = b;
+		CC = c;
+
+	}
+	void itermultiply();
+	void smultiply(vector< vector<int> > &a,vector< vector<int> > &b,vector< vector<int> > &c, int tam);
+	void smultiply1(int tam);
+	void itermultiply(vector< vector<int> > &a, vector< vector<int> > &b, vector< vector<int> > &c, int tam);
+};
+void matrixmultiply::itermultiply(vector< vector<int> > &a, vector< vector<int> > &b, vector< vector<int> > &c, int tam)
+{
+	
+		for (int i = 0; i < a.size(); i++) {
+			for (int j = 0; j < b[0].size(); j++) {
+				for (int k = 0; k < c[0].size(); k++) {
+					c[i][j] = c[i][j] + a[i][k] * b[k][j];
+				}
+			}
+		}
+	
+
+	
+}
+void matrixmultiply::itermultiply()
+{
+	if (AA.size() == BB[0].size())
+	{
+		for (int i = 0; i < AA.size(); i++) {
+			for (int j = 0; j < BB[0].size(); j++) {
+				for (int k = 0; k < AA[0].size(); k++) {
+					CC[i][j] = CC[i][j] + AA[i][k] * BB[k][j];
+				}
+			}
+		}
+	}
+
+	else
+		cout << "these matrices cannot be multiplied";
+}
+
+unsigned int nextPowerOfTwo(int n) {
+	return pow(2, int(ceil(log2(n))));
+}
+void sum(vector< vector<int> > &A,
+	vector< vector<int> > &B,
+	vector< vector<int> > &C, int tam) {
+	int i, j;
+
+	for (i = 0; i < tam; i++) {
+		for (j = 0; j < tam; j++) {
+			C[i][j] = A[i][j] + B[i][j];
+		}
+	}
+}
+
+void subtract(vector< vector<int> > &A,
+	vector< vector<int> > &B,
+	vector< vector<int> > &C, int tam) {
+	int i, j;
+
+	for (i = 0; i < tam; i++) {
+		for (j = 0; j < tam; j++) {
+			C[i][j] = A[i][j] - B[i][j];
+		}
+	}
+}
+void matrixmultiply::smultiply(vector< vector<int> > &A,
+	vector< vector<int> > &B,
+	vector< vector<int> > &C, int tam){
+	if (tam <= 16) {
+		itermultiply(A, B, C, tam);
+		return;
+	}
+
+	
+	else {
+
+
+		int ss = tam / 2;
+		vector<int> inner(ss);
+		vector< vector<int> >
+			a11(ss, inner), a12(ss, inner), a21(ss, inner), a22(ss, inner),
+			b11(ss, inner), b12(ss, inner), b21(ss, inner), b22(ss, inner),
+			c11(ss, inner), c12(ss, inner), c21(ss, inner), c22(ss, inner),
+			p1(ss, inner), p2(ss, inner), p3(ss, inner), p4(ss, inner),
+			p5(ss, inner), p6(ss, inner), p7(ss, inner),
+			aF(ss, inner), bF(ss, inner);
+
+		int i, j;
+		for (i = 0; i < ss; i++) {
+			for (j = 0; j < ss; j++) {
+				a11[i][j] = A[i][j];
+				a12[i][j] = A[i][j + ss];
+				a21[i][j] = A[i + ss][j];
+				a22[i][j] = A[i + ss][j + ss];
+
+				b11[i][j] = B[i][j];
+				b12[i][j] = B[i][j + ss];
+				b21[i][j] = B[i + ss][j];
+				b22[i][j] = B[i + ss][j + ss];
+
+			}
+		}
+
+		sum(a11, a22, aF, ss);
+		sum(b11, b22, bF, ss); 
+		smultiply(aF, bF, p1, ss); 
+		sum(a21, a22, aF, ss); 
+
+
+
+		smultiply(aF, b11, p2, ss); 
+
+		subtract(b12, b22, bF, ss); 
+		
+		
+		smultiply(a11, bF, p3, ss); 
+
+		subtract(b21, b11, bF, ss); 
+		smultiply(a22, bF, p4, ss); 
+
+
+		sum(a11, a12, aF, ss); 
+		smultiply(aF, b22, p5, ss);   
+		subtract(a21, a11, aF, ss); 
+		sum(b11, b12, bF, ss);
+		smultiply(aF, bF, p6, ss); 
+		subtract(a12, a22, aF, ss);
+		sum(b21, b22, bF, ss);
+		smultiply(aF, bF, p7, ss); 
+		sum(p3, p5, c12, ss); 
+		sum(p2, p4, c21, ss); 
+		sum(p1, p4, aF, ss); 
+		sum(aF, p7, bF, ss); 
+		subtract(bF, p5, c11, ss); 
+		sum(p1, p3, aF, ss); 
+		sum(aF, p6, bF, ss); 
+		subtract(bF, p2, c22, ss); 
+
+		
+		for (i = 0; i < ss; i++) {
+			for (j = 0; j < ss; j++) {
+				C[i][j] = c11[i][j];
+				C[i][j + ss] = c12[i][j];
+				C[i + ss][j] = c21[i][j];
+				C[i + ss][j + ss] = c22[i][j];
+			}
+		}
+	}
+}
+
+
+void matrixmultiply::smultiply1(int tam)
+{
+	unsigned int m = nextPowerOfTwo(tam);
+	vector<int> inner(m);
+	vector< vector<int> > An(m, inner), Bn(m, inner), Cn(m, inner);
+
+	for (unsigned int i = 0; i<tam; i++) {
+		for (unsigned int j = 0; j<tam; j++) {
+			An[i][j] = AA[i][j];
+			Bn[i][j] = BB[i][j];
+		}
+	}
+
+	smultiply(An, Bn, Cn, m);
+	for (unsigned int i = 0; i<tam; i++) {
+		for (unsigned int j = 0; j<tam; j++) {
+			CC[i][j] = Cn[i][j];
+		}
+	}
+
+
+}
+
+int main (void)
+{
+	vector<vector<int>> A1;
+	vector<vector<int>> B1;
+	vector<vector<int>> C1;
+	vector<int> row;
+	vector<int> row2;
+	vector<int> row3;
+
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			row.push_back(3);
+			row2.push_back(2);
+			row3.push_back(0);
+		}
+
+		A1.push_back(row);
+		B1.push_back(row2);
+		C1.push_back(row3);
+	}
+
+	matrixmultiply* m = new matrixmultiply(A1,B1,C1);
+
+	m->itermultiply();
+	m->smultiply1(10);
+
+
+
+}
